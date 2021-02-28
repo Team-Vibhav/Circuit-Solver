@@ -1,1 +1,1 @@
-skel[skel!=0] = 1
+if int(d['conf'][i]) > 60:

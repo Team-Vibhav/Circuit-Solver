@@ -40,7 +40,7 @@ def mouse_event(event,x,y,flags,param):
 	del_list = []
 	edit = 0
 	if event == cv2.EVENT_LBUTTONDBLCLK:
-		if(x>550 and y>720+15 and x<620 and y<720+45):
+		if(x>550 and y>640+15 and x<620 and y<640+45):
 			prev_stage = process_stage
 			process_stage = process_stage+1
 
@@ -288,11 +288,15 @@ def get_diode_orientation(x,y,w,h,pairs):
 
 if __name__ == "__main__":
 	cv2.namedWindow("Recognizer")
-	cv2.moveWindow("Recognizer", 200,100)
+	cv2.moveWindow("Recognizer", 400,0)
 	cv2.setMouseCallback('Recognizer',mouse_event)
 
-	src = cv2.imread("Circuit 4.jpeg")
-	src = imutils.resize(src,height=720,width=640)
+	src = cv2.imread("Circuit 5.jpeg")
+	src = cv2.resize(src,(640,640))
+
+	# cv2.imshow('res', src)
+	# cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 
 	org = src.copy()
 
@@ -306,7 +310,7 @@ if __name__ == "__main__":
 
 	bw  = skeletonize(th)
 	cv2.imwrite("skel.pgm", bw)
-	ends = skeleton_points(bw)	
+	ends = skeleton_points(bw)
 
 	## detection of ground, capacitor, v_source
 	v_pairs,h_pairs = lines_between_ends(ends, bw)
@@ -326,8 +330,12 @@ if __name__ == "__main__":
 		if (angle<105 and angle>75) or angle>160 or angle<20:
 			cv2.line(th,(int(x1),int(y1)),(int(x2),int(y2)),(0,0,0),6)
 
-	kernel = np.ones((9,9),np.uint8)
+	kernel = np.ones((5,5),np.uint8)
 	closing = cv2.morphologyEx(th, cv2.MORPH_CLOSE, kernel)
+
+	cv2.imshow('res', bw)
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()
 
 	rects = []
 	# Find Blobs on image
