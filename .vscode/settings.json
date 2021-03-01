@@ -1,4 +1,5 @@
 {
     "python.pythonPath": "C:\\Users\\ketan\\AppData\\Local\\Programs\\Python\\Python38\\python.exe",
-    "jupyter.jupyterServerType": "local"
+    "jupyter.jupyterServerType": "local",
+    "python.linting.enabled": false
 }

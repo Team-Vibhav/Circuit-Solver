@@ -7,6 +7,7 @@ from random import randint
 from segment import *
 from skeleton import *
 from copy import deepcopy
+from ocr import *
 
 process_stage = 0
 prev_stage = -1
@@ -291,22 +292,35 @@ if __name__ == "__main__":
 	cv2.moveWindow("Recognizer", 400,0)
 	cv2.setMouseCallback('Recognizer',mouse_event)
 
-	src = cv2.imread("Circuit 5.jpeg")
+	src = cv2.imread("Circuit 6.jpg")
 	src = cv2.resize(src,(640,640))
 
-	# cv2.imshow('res', src)
-	# cv2.waitKey(0)
-	# cv2.destroyAllWindows()
-
 	org = src.copy()
+	org2 = src.copy()
 
+	boxes_val = detect_values(org)
+	boxes_oth = detect_oth(org2)
+	# print(boxes_oth)
+	
 	gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
 	img = cv2.GaussianBlur(gray,(9,9),0)
 	th = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
 			cv2.THRESH_BINARY_INV,5,2)
 
+	for (x,y,w,h) in boxes_val:
+		th[y:y+h, x:x+w] = 0
+
+	for (x,y,w,h) in boxes_oth:
+		th[y:y+h, x:x+w] = 0
+
+	
+
 	th2 = th.copy()
 	cv2.imwrite("th.pgm", th2)
+
+	cv2.imshow('res', th)
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()
 
 	bw  = skeletonize(th)
 	cv2.imwrite("skel.pgm", bw)
@@ -333,9 +347,9 @@ if __name__ == "__main__":
 	kernel = np.ones((5,5),np.uint8)
 	closing = cv2.morphologyEx(th, cv2.MORPH_CLOSE, kernel)
 
-	cv2.imshow('res', bw)
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
+	# cv2.imshow('res', bw)
+	# cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 
 	rects = []
 	# Find Blobs on image
@@ -354,6 +368,8 @@ if __name__ == "__main__":
 
 	boxes = svm_predict(th2,rects,boxes)
 
+	# print(boxes)
+
 	while(1):
 
 		if process_stage == 2 and prev_stage == 1:
@@ -364,6 +380,10 @@ if __name__ == "__main__":
 
 			node_closing = cv2.morphologyEx(th2, cv2.MORPH_CLOSE, kernel)
 			node_temp = cv2.findContours(node_closing.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[0]
+
+			# cv2.imshow('res', node_closing)
+			# cv2.waitKey(0)
+			# cv2.destroyAllWindows()
 
 			node_cnts = []
 			node_ends = []
@@ -498,9 +518,14 @@ if __name__ == "__main__":
 				node_mask = np.zeros(th.shape,np.uint8)
 				cv2.drawContours(node_mask,[c]  , 0, (255,255,255), 3)
 				temp_lines = lsd(node_mask)
+				
+				# cv2.imshow('res', node_mask)
+				# cv2.waitKey(0)
+
 				tv_lines  =  remove_parallel_lines(temp_lines,2)
 				th_lines  =  remove_parallel_lines(temp_lines,1)
 				all_lines =  tv_lines + th_lines
+				
 				big = 0
 				j = -1
 				for (x1,y1,x2,y2,_),k in zip(all_lines,range(len(all_lines))):
