@@ -191,6 +191,7 @@ def output_file(wires,comp):
 
 		text1 = "SYMBOL {} {} {} R{}\n".format(label[type_id],x,y,angle)
 		text2 = "SYMATTR InstName {}{}\n".format(abb[type_id],counter[type_id])
+		text3 = "SYMATTR Value {}\n".format(70)
 		fo.write(text1)
 		fo.write(text2)
 		counter[type_id] = counter[type_id]+1
@@ -318,9 +319,9 @@ if __name__ == "__main__":
 	th2 = th.copy()
 	cv2.imwrite("th.pgm", th2)
 
-	cv2.imshow('res', th)
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
+	# cv2.imshow('res', th)
+	# cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 
 	bw  = skeletonize(th)
 	cv2.imwrite("skel.pgm", bw)
