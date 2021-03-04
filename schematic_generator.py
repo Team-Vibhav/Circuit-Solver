@@ -112,7 +112,7 @@ def mouse_event_edit(event,x,y,flags,param):
 
 		for i in range(len(text)):
 			if(x>20 and y>i*40+20 and x<120 and y<i*40+50):
-				boxes[param][1] = i
+				boxes[1] = i
 				edit_flag = 1
 				break
 
@@ -136,8 +136,12 @@ def draw_result_boxes(img,boxes):
 		text = ['v_source','capacitor','ground','diode','resistor','inductor']
 		font = cv2.FONT_HERSHEY_SIMPLEX
 		for ((x,y,w,h),idx) in boxes:
-			cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(250,0,0),1,cv2.LINE_AA)
-			cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
+			if edit_flag == 1:
+				cv2.putText(img, boxes[params][1] ,(x-5,y-5),font,0.6,(250,0,0),1,cv2.LINE_AA)
+				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
+			else:
+				cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(250,0,0),1,cv2.LINE_AA)
+				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
 
 def output_file(wires,comp):
 	counter  = np.zeros(6, dtype=np.int8)
@@ -293,14 +297,14 @@ if __name__ == "__main__":
 	cv2.moveWindow("Recognizer", 400,0)
 	cv2.setMouseCallback('Recognizer',mouse_event)
 
-	src = cv2.imread("Circuit 6.jpg")
+	src = cv2.imread("Circuit 7.jpeg")
 	src = cv2.resize(src,(640,640))
 
 	org = src.copy()
 	org2 = src.copy()
 
 	boxes_val = detect_values(org)
-	boxes_oth = detect_oth(org2)
+	# boxes_oth = detect_oth(org2)
 	# print(boxes_oth)
 	
 	gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
@@ -308,11 +312,11 @@ if __name__ == "__main__":
 	th = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
 			cv2.THRESH_BINARY_INV,5,2)
 
-	for (x,y,w,h) in boxes_val:
+	for ((x,y,w,h),val) in boxes_val:
 		th[y:y+h, x:x+w] = 0
 
-	for (x,y,w,h) in boxes_oth:
-		th[y:y+h, x:x+w] = 0
+	# for (x,y,w,h) in boxes_oth:
+	# 	th[y:y+h, x:x+w] = 0
 
 	
 
@@ -605,6 +609,7 @@ if __name__ == "__main__":
 
 			wires = wires + refs
 
+			print(comp_ends)
 			output_file(wires,comp_ends)
 			flagx = 1
 
