@@ -112,7 +112,7 @@ def mouse_event_edit(event,x,y,flags,param):
 
 		for i in range(len(text)):
 			if(x>20 and y>i*40+20 and x<120 and y<i*40+50):
-				boxes[1] = i
+				boxes[param][1] = i
 				edit_flag = 1
 				break
 
@@ -136,12 +136,33 @@ def draw_result_boxes(img,boxes):
 		text = ['v_source','capacitor','ground','diode','resistor','inductor']
 		font = cv2.FONT_HERSHEY_SIMPLEX
 		for ((x,y,w,h),idx) in boxes:
-			if edit_flag == 1:
-				cv2.putText(img, boxes[params][1] ,(x-5,y-5),font,0.6,(250,0,0),1,cv2.LINE_AA)
-				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
-			else:
-				cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(250,0,0),1,cv2.LINE_AA)
-				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
+			cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(255,0,0),1,cv2.LINE_AA)
+			cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
+
+# def draw_result_boxes(img,boxes):
+# 	if process_stage == 0:
+# 		for (x,y,w,h),_ in boxes:
+# 			cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
+# 	else:
+# 		text = ['v_source','capacitor','ground','diode','resistor','inductor']
+# 		font = cv2.FONT_HERSHEY_SIMPLEX
+# 		for ((x,y,w,h),idx) in boxes:
+
+# 			region = img[y-5:y,x-5:x+w]
+# 			region_hsv = cv2.cvtColor(region, cv2.COLOR_BGR2HSV)
+# 			blue_lower=np.array([100,150,0],np.uint8)
+# 			blue_upper=np.array([140,255,255],np.uint8)
+# 			mask = cv2.inRange(region_hsv, blue_lower, blue_upper)
+# 			res = cv2.bitwise_and(region,region, mask= mask)
+
+# 			if cv2.countNonZero(mask) > 0:
+# 				cv2.putText(img, text[idx] ,(x-5,y+h+5),font,0.6,(0,0,255),1,cv2.LINE_AA)
+# 				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
+# 			else:
+# 				cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(255,0,0),1,cv2.LINE_AA)
+# 				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
+
+				
 
 def output_file(wires,comp):
 	counter  = np.zeros(6, dtype=np.int8)
@@ -293,19 +314,18 @@ def get_diode_orientation(x,y,w,h,pairs):
 			return 180
 
 if __name__ == "__main__":
+	
 	cv2.namedWindow("Recognizer")
 	cv2.moveWindow("Recognizer", 400,0)
 	cv2.setMouseCallback('Recognizer',mouse_event)
 
-	src = cv2.imread("Circuit 7.jpeg")
+	src = cv2.imread("Sample Images\Circuit 7.jpeg")
 	src = cv2.resize(src,(640,640))
 
 	org = src.copy()
-	org2 = src.copy()
 
 	boxes_val = detect_values(org)
-	# boxes_oth = detect_oth(org2)
-	# print(boxes_oth)
+	boxes_val = combine(boxes_val)
 	
 	gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
 	img = cv2.GaussianBlur(gray,(9,9),0)
@@ -313,12 +333,7 @@ if __name__ == "__main__":
 			cv2.THRESH_BINARY_INV,5,2)
 
 	for ((x,y,w,h),val) in boxes_val:
-		th[y:y+h, x:x+w] = 0
-
-	# for (x,y,w,h) in boxes_oth:
-	# 	th[y:y+h, x:x+w] = 0
-
-	
+		th[y-1:y+h+1, x-1:x+w+1] = 0
 
 	th2 = th.copy()
 	cv2.imwrite("th.pgm", th2)
@@ -330,6 +345,9 @@ if __name__ == "__main__":
 	bw  = skeletonize(th)
 	cv2.imwrite("skel.pgm", bw)
 	ends = skeleton_points(bw)
+
+	for i in range(len(ends[0])):
+		cv2.circle(img, (ends[1][i], ends[0][i]), 1, (255,0,0), -1)
 
 	## detection of ground, capacitor, v_source
 	v_pairs,h_pairs = lines_between_ends(ends, bw)
@@ -373,7 +391,7 @@ if __name__ == "__main__":
 
 	boxes = svm_predict(th2,rects,boxes)
 
-	# print(boxes)
+	print(boxes)
 
 	while(1):
 
@@ -392,7 +410,14 @@ if __name__ == "__main__":
 
 			node_cnts = []
 			node_ends = []
-			pairs = np.vstack((v_pairs,h_pairs))
+			
+			if len(v_pairs) == 0:
+				pairs = h_pairs
+			elif len(h_pairs) == 0:
+				pairs = v_pairs
+			else:
+				pairs = np.vstack((v_pairs,h_pairs))
+
 			i = 0
 			for c in node_temp:
 				if cv2.contourArea(c)>50:

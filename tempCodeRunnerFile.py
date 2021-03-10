@@ -1,1 +1,2 @@
-img = cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+for ((x,y,w,h),val) in boxes_val:
+	# 	th[y-1:y+h+1, x-1:x+w+1] = 0
