@@ -164,7 +164,7 @@ def draw_result_boxes(img,boxes):
 
 				
 
-def output_file(wires,comp):
+def output_file(wires,comp,boxes):
 	counter  = np.zeros(6, dtype=np.int8)
 	label    = ['voltage','cap','ground','diode','res','ind']
 	abb      = ['V','C','G','D','R','L']
@@ -216,9 +216,13 @@ def output_file(wires,comp):
 
 		text1 = "SYMBOL {} {} {} R{}\n".format(label[type_id],x,y,angle)
 		text2 = "SYMATTR InstName {}{}\n".format(abb[type_id],counter[type_id])
-		text3 = "SYMATTR Value {}\n".format(70)
+		text3 = "SYMATTR Value {}\n".format(boxes[box_id][2])
 		fo.write(text1)
 		fo.write(text2)
+		fo.write(text3)
+		# if boxes[box_id][2] != 0:
+		# 	text3 = "SYMATTR Value {}\n".format(boxes[box_id][2])
+		# 	fo.write(text3)
 		counter[type_id] = counter[type_id]+1
 
 	fo.close()
@@ -288,10 +292,12 @@ def get_v_s_orientation(x,y,w,h,pairs):
 			return 0
 
 def get_diode_orientation(x,y,w,h,pairs):
+	print(pairs)
 	lines = []
 	angle_ax = 0
 	for q in range(len(pairs)):
 		midx1,midy1 = ((pairs[q,0]+pairs[q,2])/2,(pairs[q,1]+pairs[q,3])/2)
+		
 		if (midx1>x and midx1<x+w) and (midy1>y and midy1<y+h):
 			if abs(pairs[q,0]-pairs[q,2]) > abs(pairs[q,1]-pairs[q,3]):
 				angle_ax = 1    ## v_S vertical
@@ -299,8 +305,10 @@ def get_diode_orientation(x,y,w,h,pairs):
 			else:
 				angle_ax = 0    ## v_s horizontal
 				mid = midx1
+			print(mid)
 			lines.append([mid])
 	lines = np.array(lines)
+	
 	if angle_ax == 0:
 		if abs(lines[0,0]-x) > abs(lines[0,0]-(x+w)):
 			return 270
@@ -346,8 +354,8 @@ if __name__ == "__main__":
 	cv2.imwrite("skel.pgm", bw)
 	ends = skeleton_points(bw)
 
-	for i in range(len(ends[0])):
-		cv2.circle(img, (ends[1][i], ends[0][i]), 1, (255,0,0), -1)
+	# for i in range(len(ends[0])):
+	# 	cv2.circle(img, (ends[1][i], ends[0][i]), 1, (255,0,0), -1)
 
 	## detection of ground, capacitor, v_source
 	v_pairs,h_pairs = lines_between_ends(ends, bw)
@@ -391,7 +399,36 @@ if __name__ == "__main__":
 
 	boxes = svm_predict(th2,rects,boxes)
 
-	print(boxes)
+	boxes_cpy = deepcopy(boxes)
+
+	# mapping values to the components
+	for box in boxes_cpy:
+		x1 = int((box[0][0] + box[0][2])/2)
+		y1 = int((box[0][1] + box[0][3])/2)
+
+		value = 0
+		dist = 0
+		min_dist = 1000
+
+		for val in boxes_val:
+			x2 = int((val[0][0] + val[0][2])/2)
+			y2 = int((val[0][1] + val[0][3])/2)
+
+			dist = np.sqrt((x1-x2)**2 + (y1-y2)**2)
+
+			if(dist < min_dist):
+				value = val[1]
+				min_dist = dist
+
+		if(min_dist < 100):
+			box.append(value)
+		else:
+			box.append(0)
+
+	# print(boxes_cpy)
+	# print(boxes_val)		
+
+
 
 	while(1):
 
@@ -403,10 +440,6 @@ if __name__ == "__main__":
 
 			node_closing = cv2.morphologyEx(th2, cv2.MORPH_CLOSE, kernel)
 			node_temp = cv2.findContours(node_closing.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[0]
-
-			# cv2.imshow('res', node_closing)
-			# cv2.waitKey(0)
-			# cv2.destroyAllWindows()
 
 			node_cnts = []
 			node_ends = []
@@ -480,6 +513,7 @@ if __name__ == "__main__":
 
 				if idx == 2:    # if ground comp
 					comp_ends.append([i,idx,minIdx[0],minIdx[0],min_edg[0],min_edg[0],0])
+					i = i+1
 					continue
 				## if box wire is horizontal else vertical
 				if abs(min_edg[0][0]-min_edg[1][0]) > abs(min_edg[0][1]-min_edg[1][1]):
@@ -634,8 +668,8 @@ if __name__ == "__main__":
 
 			wires = wires + refs
 
-			print(comp_ends)
-			output_file(wires,comp_ends)
+			# print(len(comp_ends))
+			output_file(wires,comp_ends, boxes_cpy)
 			flagx = 1
 
 		draw_result_boxes(src,boxes)
