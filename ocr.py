@@ -1,14 +1,10 @@
 import numpy as np
 import cv2
 import pandas as pd
-from math import isnan
-import pytesseract
-from pytesseract import Output
+
 import imutils
 from imutils.contours import sort_contours
 from tensorflow.keras.models import load_model
-
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 def detect_values(src):
 
@@ -75,7 +71,7 @@ def detect_values(src):
 		prob = pred[i]
 		label = labelNames[i]
 
-		cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+		# cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
 		# cv2.putText(img, label, (x - 10, y - 10),
 		# 	cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
@@ -90,10 +86,11 @@ def detect_values(src):
 
 def combine(boxes_val):
 
-	# print(boxes_val)
+	print(boxes_val)
 	bvcpy = boxes_val.copy()
+	n = 1
 
-	for i in range(len(bvcpy)-1):
+	for i in range(len(bvcpy)-2,-1,-1):
 		x1 = bvcpy[i][0][0]
 		y1 = bvcpy[i][0][1]
 		x2 = bvcpy[i+1][0][0]
@@ -107,9 +104,15 @@ def combine(boxes_val):
 
 		if dist <= 50:
 			boxes_val[i][0] = (x1, min(y1,y2), x2-x1+w2, max(y1+h1, y2+h2) - min(y1,y2))
-			boxes_val[i][1] = 10*boxes_val[i][1] + boxes_val[i+1][1]
+			boxes_val[i][1] = (10**n)*boxes_val[i][1] + boxes_val[i+1][1]
 
 			boxes_val.remove(boxes_val[i+1])
+			n = n+1
+		
+		else:
+			n = 1
+	
+	print(boxes_val)
 
 	return boxes_val
 

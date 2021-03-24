@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import sys
 import imutils
-from pylsd.lsd import lsd
+from pylsd import lsd
 from random import randint
 from segment import *
 from skeleton import *
@@ -220,9 +220,7 @@ def output_file(wires,comp,boxes):
 		fo.write(text1)
 		fo.write(text2)
 		fo.write(text3)
-		# if boxes[box_id][2] != 0:
-		# 	text3 = "SYMATTR Value {}\n".format(boxes[box_id][2])
-		# 	fo.write(text3)
+
 		counter[type_id] = counter[type_id]+1
 
 	fo.close()
