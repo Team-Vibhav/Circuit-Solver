@@ -338,15 +338,13 @@ if __name__ == "__main__":
 	th = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
 			cv2.THRESH_BINARY_INV,5,2)
 
+	# removing the digits from thresholded image
+
 	for ((x,y,w,h),val) in boxes_val:
 		th[y-1:y+h+1, x-1:x+w+1] = 0
 
 	th2 = th.copy()
 	cv2.imwrite("th.pgm", th2)
-
-	# cv2.imshow('res', th)
-	# cv2.waitKey(0)
-	# cv2.destroyAllWindows()
 
 	bw  = skeletonize(th)
 	cv2.imwrite("skel.pgm", bw)
@@ -354,6 +352,10 @@ if __name__ == "__main__":
 
 	# for i in range(len(ends[0])):
 	# 	cv2.circle(img, (ends[1][i], ends[0][i]), 1, (255,0,0), -1)
+
+	# cv2.imshow('res', img)
+	# cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 
 	## detection of ground, capacitor, v_source
 	v_pairs,h_pairs = lines_between_ends(ends, bw)
@@ -364,6 +366,10 @@ if __name__ == "__main__":
 	## remove founded symbols
 	for ((x,y,w,h),idx) in boxes:
 		th[y:y+h,x:x+w] = 0
+
+	# cv2.imshow('res', th)
+	# cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 
 	## detect vert and hori lines then remove them from binary image
 	lsd_lines = lsd(th)
