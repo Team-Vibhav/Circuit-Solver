@@ -1,10 +1,7 @@
 import numpy as np
 import cv2
-import sys
 import imutils
-import matplotlib.pyplot as plt
 from skimage.morphology import skeletonize as skt
-from skimage import filters
 
 def skeletonize(img):
 

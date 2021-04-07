@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 
 def skeleton_points(skel):
 	# make out input nice, possibly necessary
