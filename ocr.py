@@ -116,11 +116,11 @@ def combine(boxes_val):
 
 	return boxes_val
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-	src = cv2.imread("Sample Images\Circuit 7.jpeg")
-	src = cv2.resize(src, (640,640))
+# 	src = cv2.imread("Sample Images\Circuit 7.jpeg")
+# 	src = cv2.resize(src, (640,640))
 	
-	boxes_val = detect_values(src)
-	combine(boxes_val)
+# 	boxes_val = detect_values(src)
+# 	combine(boxes_val)
 	

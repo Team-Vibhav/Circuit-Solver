@@ -14,6 +14,7 @@ prev_stage = -1
 ix,iy = -1,-1
 flagx = 0
 edit_flag = 0
+edit_flag_1 = 0
 boxes=[]
 
 def get_hog() :
@@ -36,7 +37,7 @@ def get_hog() :
 
 # mouse callback function
 def mouse_event(event,x,y,flags,param):
-	global process_stage,prev_stage,ix,iy,boxes,edit_flag
+	global process_stage,prev_stage,ix,iy,boxes,edit_flag,edit_flag_1
 	boxes_t = []
 	del_list = []
 	edit = 0
@@ -49,6 +50,7 @@ def mouse_event(event,x,y,flags,param):
 		if process_stage == 0:
 			ix,iy = x,y
 		elif process_stage == 1:
+			edit_flag_1 = 1
 			i = 0
 			for (x0,y0,w,h),_ in boxes:
 				if(x>x0 and y>y0 and x<x0+w and y<y0+h):
@@ -128,17 +130,6 @@ def svm_predict(th2,rects,boxes):
 		boxes.append([[int(x),int(y),int(x2-x),int(y2-y)],idx])
 	return boxes
 
-def draw_result_boxes(img,boxes):
-	if process_stage == 0:
-		for (x,y,w,h),_ in boxes:
-			cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
-	else:
-		text = ['v_source','capacitor','ground','diode','resistor','inductor']
-		font = cv2.FONT_HERSHEY_SIMPLEX
-		for ((x,y,w,h),idx) in boxes:
-			cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(255,0,0),1,cv2.LINE_AA)
-			cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
-
 # def draw_result_boxes(img,boxes):
 # 	if process_stage == 0:
 # 		for (x,y,w,h),_ in boxes:
@@ -147,22 +138,29 @@ def draw_result_boxes(img,boxes):
 # 		text = ['v_source','capacitor','ground','diode','resistor','inductor']
 # 		font = cv2.FONT_HERSHEY_SIMPLEX
 # 		for ((x,y,w,h),idx) in boxes:
+# 			cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(255,0,0),1,cv2.LINE_AA)
+# 			cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
 
-# 			region = img[y-5:y,x-5:x+w]
-# 			region_hsv = cv2.cvtColor(region, cv2.COLOR_BGR2HSV)
-# 			blue_lower=np.array([100,150,0],np.uint8)
-# 			blue_upper=np.array([140,255,255],np.uint8)
-# 			mask = cv2.inRange(region_hsv, blue_lower, blue_upper)
-# 			res = cv2.bitwise_and(region,region, mask= mask)
+def draw_result_boxes(img,boxes,edit_flag_1):
+	
+	if process_stage == 0:
+		for (x,y,w,h),_ in boxes:
+			cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
+	else:
+		
+		text = ['v_source','capacitor','ground','diode','resistor','inductor']
+		font = cv2.FONT_HERSHEY_SIMPLEX
+		for ((x,y,w,h),idx) in boxes:
+			if(edit_flag_1==1):
+				cv2.putText(img, text[idx] ,(x-5,y+h+5),font,0.6,(0,0,255),1,cv2.LINE_AA)
+				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
 
-# 			if cv2.countNonZero(mask) > 0:
-# 				cv2.putText(img, text[idx] ,(x-5,y+h+5),font,0.6,(0,0,255),1,cv2.LINE_AA)
-# 				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
-# 			else:
-# 				cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(255,0,0),1,cv2.LINE_AA)
-# 				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
-
+			else:
+				cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(255,0,0),1,cv2.LINE_AA)
+				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
 				
+
+		
 
 def output_file(wires,comp,boxes):
 	counter  = np.zeros(6, dtype=np.int8)
@@ -676,7 +674,7 @@ if __name__ == "__main__":
 			output_file(wires,comp_ends, boxes_cpy)
 			flagx = 1
 
-		draw_result_boxes(src,boxes)
+		draw_result_boxes(src,boxes,edit_flag_1)
 		menubar = get_menubar()
 		lastimg = np.vstack((src,menubar))
 		cv2.imshow("Recognizer", lastimg)
