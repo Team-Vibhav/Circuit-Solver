@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import cv2
 import sys
@@ -129,17 +130,6 @@ def svm_predict(th2,rects,boxes):
 		idx = int(result[0][0])+3
 		boxes.append([[int(x),int(y),int(x2-x),int(y2-y)],idx])
 	return boxes
-
-# def draw_result_boxes(img,boxes):
-# 	if process_stage == 0:
-# 		for (x,y,w,h),_ in boxes:
-# 			cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
-# 	else:
-# 		text = ['v_source','capacitor','ground','diode','resistor','inductor']
-# 		font = cv2.FONT_HERSHEY_SIMPLEX
-# 		for ((x,y,w,h),idx) in boxes:
-# 			cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(255,0,0),1,cv2.LINE_AA)
-# 			cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
 
 def draw_result_boxes(img,boxes,edit_flag_1):
 	
@@ -323,7 +313,9 @@ if __name__ == "__main__":
 	cv2.moveWindow("Recognizer", 400,0)
 	cv2.setMouseCallback('Recognizer',mouse_event)
 
-	src = cv2.imread("Sample Images\Circuit 7.jpeg")
+	input_file = sys.argv[1]
+
+	src = cv2.imread(input_file)
 	src = cv2.resize(src,(640,640))
 
 	org = src.copy()
