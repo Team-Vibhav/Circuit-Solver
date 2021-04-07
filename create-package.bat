@@ -1,5 +1,8 @@
 pyinstaller ^
+    --onefile ^
+    --noconfirm ^
     --clean ^
+    --hidden-import "skimage.filters.rank.core_cy_3d" ^
     --add-data "svm_data.dat;." ^
     --add-data "trained_MNIST_model.h5;." ^
     --add-data "th.pgm;." ^
