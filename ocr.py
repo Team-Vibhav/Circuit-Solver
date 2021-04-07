@@ -86,7 +86,6 @@ def detect_values(src):
 
 def combine(boxes_val):
 
-	print(boxes_val)
 	bvcpy = boxes_val.copy()
 	n = 1
 
@@ -111,8 +110,6 @@ def combine(boxes_val):
 		
 		else:
 			n = 1
-	
-	print(boxes_val)
 
 	return boxes_val
 
