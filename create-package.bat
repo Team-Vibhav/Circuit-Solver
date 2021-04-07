@@ -1,0 +1,1 @@
+pyinstaller --clean --add-binary ".\venv\Lib\site-packages\pylsd\lib\win32\x64\liblsd.dll:." --clean --name "Circuit-Solver" schematic_generator.py
