@@ -1,13 +1,14 @@
-import sys
-import numpy as np
 import cv2
-import sys
 import imutils
+import numpy as np
 from pylsd import lsd
+
+from copy import deepcopy
 from random import randint
+import sys
+
 from segment import *
 from skeleton import *
-from copy import deepcopy
 from ocr import *
 
 process_stage = 0
