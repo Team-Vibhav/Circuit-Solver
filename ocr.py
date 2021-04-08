@@ -6,9 +6,13 @@ import imutils
 from imutils.contours import sort_contours
 from tensorflow.keras.models import load_model
 
+import utils
+
 def detect_values(src):
 
-	model = load_model("trained_MNIST_model.h5")
+	model_path = utils.resource_path("trained_MNIST_model.h5")
+
+	model = load_model(model_path)
 
 	img = src
 	gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

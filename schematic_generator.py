@@ -11,6 +11,7 @@ from copy import deepcopy
 from random import randint
 import sys
 
+import utils
 from segment import *
 from skeleton import *
 from ocr import *
@@ -125,8 +126,10 @@ def mouse_event_edit(event,x,y,flags,param):
 				break
 
 def svm_predict(th2,rects,boxes):
+
+	svm_path = utils.resource_path("svm_data.dat")
 	
-	svm = cv2.ml.SVM_load("svm_data.dat")
+	svm = cv2.ml.SVM_load(svm_path)
 	hog = get_hog()
 	for x,y,x2,y2 in rects:
 		region = cv2.resize(th2[y:y2,x:x2],(100,100),interpolation = cv2.INTER_CUBIC)
@@ -701,7 +704,7 @@ if __name__ == "__main__":
 		if (cv2.waitKey(1) & 0xFF == ord('q')) or flagx ==1:
 			break
 
-	while (process_stage <3):
+	while (process_stage < 3):
 		cv2.imshow("Recognizer", lastimg)
 		if(cv2.waitKey(1) & 0xFF == ord('q')):
 			break
