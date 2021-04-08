@@ -1,5 +1,6 @@
 pyinstaller ^
     --onefile ^
+    --upx-dir="C:\upx-3.96-win64" ^
     --noconfirm ^
     --clean ^
     --hidden-import "skimage.filters.rank.core_cy_3d" ^

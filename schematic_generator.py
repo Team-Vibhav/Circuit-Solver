@@ -3,6 +3,10 @@ import imutils
 import numpy as np
 from pylsd import lsd
 
+import tkinter as tk
+from tkinter.messagebox import showinfo
+from tkinter import filedialog as fd
+from PIL import Image, ImageTk
 from copy import deepcopy
 from random import randint
 import sys
@@ -149,20 +153,23 @@ def draw_result_boxes(img,boxes,edit_flag_1):
 			else:
 				cv2.putText(img, text[idx] ,(x-5,y-5),font,0.6,(255,0,0),1,cv2.LINE_AA)
 				cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),1)
-				
 
-		
+def save():
+	files = [('Schematic Files', '*.asc'),
+			('All Files', '*.*')]
+	file = fd.asksaveasfile(filetypes = files, defaultextension = files)
+
+	return file
 
 def output_file(wires,comp,boxes):
 	counter  = np.zeros(6, dtype=np.int8)
 	label    = ['voltage','cap','ground','diode','res','ind']
 	abb      = ['V','C','G','D','R','L']
 	offset   = [[0,16],[16,0],[0,0],[16,0],[16,16],[16,16]]
-	filename = "{}.asc".format('test')
-	print(filename)
+	filename = save()
 	x = 0
 	y = 0
-	fo = open(filename,"w")
+	fo = open(filename.name,"w")
 	fo.write("Version 4\n");
 	fo.write("SHEET 1 880 680\n");
 	for wire in wires:
@@ -308,13 +315,53 @@ def get_diode_orientation(x,y,w,h,pairs):
 		else:
 			return 180
 
+def select_file():
+
+	filetypes = (
+		('Image files', '*.jpeg'),
+		('All files', '*.*')
+	)
+
+	select_file.filename = fd.askopenfilename(
+		title='Open a file',
+		initialdir='/',
+		filetypes=filetypes
+	)
+
 if __name__ == "__main__":
+
+	root = tk.Tk()
+	root.title('Circuit Solver')
+	root.resizable(True, True)
+	root.geometry('300x150')
+
+	# open_button = tk.Button(
+	# 	root,
+	# 	text='Open a File',
+	# 	command=select_file
+	# 	)
+
+	welcome = tk.Label(
+		text="Choose a Circuit Image",
+	)
+
+
+	welcome.pack(expand=True)
+
+	select_file()
+
+	input_file = select_file.filename
+
+	root.destroy()
+
+	# run the application
+	# root.mainloop()
 	
 	cv2.namedWindow("Recognizer")
 	cv2.moveWindow("Recognizer", 400,0)
 	cv2.setMouseCallback('Recognizer',mouse_event)
 
-	input_file = sys.argv[1]
+	# input_file = sys.argv[1]
 
 	src = cv2.imread(input_file)
 	src = cv2.resize(src,(640,640))
@@ -327,7 +374,7 @@ if __name__ == "__main__":
 	gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
 	img = cv2.GaussianBlur(gray,(9,9),0)
 	th = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-			cv2.THRESH_BINARY_INV,5,2)
+			cv2.THRESH_BINARY_INV,11,2)
 
 	# removing the digits from thresholded image
 
@@ -341,13 +388,6 @@ if __name__ == "__main__":
 	cv2.imwrite("skel.pgm", bw)
 	ends = skeleton_points(bw)
 
-	# for i in range(len(ends[0])):
-	# 	cv2.circle(img, (ends[1][i], ends[0][i]), 1, (255,0,0), -1)
-
-	# cv2.imshow('res', img)
-	# cv2.waitKey(0)
-	# cv2.destroyAllWindows()
-
 	## detection of ground, capacitor, v_source
 	v_pairs,h_pairs = lines_between_ends(ends, bw)
 	v_boxes = box_between_ends(v_pairs)
@@ -357,10 +397,6 @@ if __name__ == "__main__":
 	## remove founded symbols
 	for ((x,y,w,h),idx) in boxes:
 		th[y:y+h,x:x+w] = 0
-
-	# cv2.imshow('res', th)
-	# cv2.waitKey(0)
-	# cv2.destroyAllWindows()
 
 	## detect vert and hori lines then remove them from binary image
 	lsd_lines = lsd(th)
@@ -372,10 +408,6 @@ if __name__ == "__main__":
 
 	kernel = np.ones((5,5),np.uint8)
 	closing = cv2.morphologyEx(th, cv2.MORPH_CLOSE, kernel)
-
-	# cv2.imshow('res', bw)
-	# cv2.waitKey(0)
-	# cv2.destroyAllWindows()
 
 	rects = []
 	# Find Blobs on image
@@ -419,11 +451,6 @@ if __name__ == "__main__":
 			box.append(value)
 		else:
 			box.append(0)
-
-	# print(boxes_cpy)
-	# print(boxes_val)		
-
-
 
 	while(1):
 
