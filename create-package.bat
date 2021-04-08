@@ -1,5 +1,6 @@
 pyinstaller ^
     --onefile ^
+    --noconsole ^
     --noconfirm ^
     --clean ^
     --hidden-import "skimage.filters.rank.core_cy_3d" ^
